@@ -8,7 +8,7 @@ services:
         stdin_open: true # docker run -i
         tty: true        # docker run -t
         environment:
-          - PREFIX=zigbee/stereo
+          - PREFIX=zigbee2mqtt/SONOS-remote
           - MQTT_HOST=localhost
           - MQTT_PORT=1883
           - MQTT_USER=
