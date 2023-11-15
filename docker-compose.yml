@@ -8,10 +8,11 @@ services:
         stdin_open: true # docker run -i
         tty: true        # docker run -t
         environment:
-          - PREFIX=zigbee2mqtt/SONOS-remote
+          - PREFIX=zigbee2mqtt/sonosremote
           - MQTT_HOST=localhost
           - MQTT_PORT=1883
           - MQTT_USER=
           - MQTT_PASS=
           - VOLUME_MULTIPLIER=2
+          - SONOS_ZONE=Woonkamer Sonos
           
