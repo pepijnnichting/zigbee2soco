@@ -29,7 +29,7 @@ except:
 try:
     mqtthost=os.environ.get("MQTT_HOST")
 except:
-    mqtthost="lcalhost"
+    mqtthost="localhost"
 
 try:
     mqttport=os.environ.get("MQTT_PORT")
