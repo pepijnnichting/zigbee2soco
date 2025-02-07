@@ -160,10 +160,10 @@ def on_message(client, userdata, msg):
     elif action == "skip_forward" or action == "track_next":
         # gen1 - skip_forward, gen2 - track_next
         z2s.skipforward(socozone)
-    elif action == "rotate_right" or action == "volume_up" or action == "brightness_move_up" or (action == "None" and z2s.lastUporDown == "up"):
+    elif action == "rotate_right" or action == "volume_up" or action == "brightness_move_up" or (action == None and z2s.lastUporDown == "up"):
         # gen1 - rotate, gen2 - volume...
         z2s.volup(socozone)
-    elif action == "rotate_left"  or action == "volume_down" or action == "brightness_move_down" or (action == "None" and z2s.lastUporDown == "down"):
+    elif action == "rotate_left"  or action == "volume_down" or action == "brightness_move_down" or (action == None and z2s.lastUporDown == "down"):
         # gen1 - rotate, gen2 - volume...
         z2s.voldown(socozone)
         
