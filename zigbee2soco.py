@@ -60,6 +60,7 @@ class Z2S:
 
     def __init__(self):
         self.discover()
+        self.lastUporDown = None
         
     def discover(self):
         discovered = soco.discover()
@@ -104,7 +105,7 @@ class Z2S:
     def voldown(self, speaker):
         self.state = self.zones[speaker].get_current_transport_info()['current_transport_state']
         if self.state == "PLAYING":
-            print("volume down "+speaker)
+            print("volume down " + speaker)
             nv = max(self.zones[speaker].volume-multiplier,0)
             self.zones[speaker].volume = nv
 
@@ -134,16 +135,15 @@ def on_message(client, userdata, msg):
     action = payload.get('action')
     volume = payload.get('brightness')
     # print(decoded_message)
-    print(action)
-    print(volume)
+    # print(action)
+    # print(volume)
 
-    lastUporDown = None;
     if action == "brightness_move_up":
-        lastUporDown = "up"
+        z2s.lastUporDown = "up"
     elif action == "brightness_move_down":
-        lastUporDown = "down"   
+        z2s.lastUporDown = "down"   
     elif action == "brightness_stop":
-        lastUporDown = None
+        z2s.lastUporDown = None
 
     # move this to the object
     if not socozone in z2s.zones:
@@ -160,10 +160,10 @@ def on_message(client, userdata, msg):
     elif action == "skip_forward" or action == "track_next":
         # gen1 - skip_forward, gen2 - track_next
         z2s.skipforward(socozone)
-    elif action == "rotate_right" or action == "volume_up" or action == "brightness_move_up" or (action is "None" and lastUporDown == "up"):
+    elif action == "rotate_right" or action == "volume_up" or action == "brightness_move_up" or (action == "None" and z2s.lastUporDown == "up"):
         # gen1 - rotate, gen2 - volume...
         z2s.volup(socozone)
-    elif action == "rotate_left"  or action == "volume_down" or action == "brightness_move_down" or (action == "None" and lastUporDown == "down"):
+    elif action == "rotate_left"  or action == "volume_down" or action == "brightness_move_down" or (action == "None" and z2s.lastUporDown == "down"):
         # gen1 - rotate, gen2 - volume...
         z2s.voldown(socozone)
         
