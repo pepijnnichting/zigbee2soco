@@ -78,15 +78,15 @@ class Z2S:
         #print(state)
 
         if self.state == "PLAYING":
-            print("Pause "+speaker)
+            print("Pause " + speaker)
             self.zones[speaker].pause()
         
         else:
-            print("Play "+speaker)
+            print("Play " + speaker)
             try:                
                 self.zones[speaker].play()
-            except:
-                print("Unable to play tune on "+speaker+". Try playing something from the Sonos controller first.")
+            except Exception as e:
+                print(f"Unable to play tune on {speaker}. Try playing something from the Sonos controller first. Error: {e}")
                 pass
 
     def skipforward(self, speaker):
@@ -97,13 +97,15 @@ class Z2S:
     def volup(self, speaker):
         self.state = self.zones[speaker].get_current_transport_info()['current_transport_state']
         if self.state == "PLAYING":
-            nv =  min(self.zones[speaker].volume+multiplier,100)
+            print("volume up " + speaker)
+            nv = min(self.zones[speaker].volume + multiplier, 100)
             self.zones[speaker].volume = nv
 
     def voldown(self, speaker):
         self.state = self.zones[speaker].get_current_transport_info()['current_transport_state']
         if self.state == "PLAYING":
-            nv =  max(self.zones[speaker].volume-multiplier,0)
+            print("volume down "+speaker)
+            nv = max(self.zones[speaker].volume-multiplier,0)
             self.zones[speaker].volume = nv
 
         
@@ -158,10 +160,10 @@ def on_message(client, userdata, msg):
     elif action == "skip_forward" or action == "track_next":
         # gen1 - skip_forward, gen2 - track_next
         z2s.skipforward(socozone)
-    elif action == "rotate_right" or action == "volume_up" or action == "brightness_move_up" or action == "None" and lastUporDown == "up":
+    elif action == "rotate_right" or action == "volume_up" or action == "brightness_move_up" or (action is "None" and lastUporDown == "up"):
         # gen1 - rotate, gen2 - volume...
         z2s.volup(socozone)
-    elif action == "rotate_left"  or action == "volume_down" or action == "brightness_move_down" or action == "None" and lastUporDown == "down":
+    elif action == "rotate_left"  or action == "volume_down" or action == "brightness_move_down" or (action == "None" and lastUporDown == "down"):
         # gen1 - rotate, gen2 - volume...
         z2s.voldown(socozone)
         
