@@ -22,7 +22,7 @@ except:
     multiplier=1
 
 try:
-    mqttprefix=os.environ.get("PREFIX")
+    mqttprefix=os.environ.get("MQTT_PREFIX")
 except:
     mqttprefix="zigbee2mqtt/sonosremote"
 

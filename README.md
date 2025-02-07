@@ -16,7 +16,7 @@ Configuration:
 
 You can either edit the config into the source, or if using docker-compose, change the environment variables in docker-compose.yml:
 
-* PREFIX=zigbee/stereo _the zigbee mqtt prefix, as described above_
+* MQTT_PREFIX=zigbee/stereo _the zigbee mqtt prefix, as described above_
 * MQTT_HOST=localhost  _mqtt host_
 * MQTT_PORT=1883       _mqtt port_
 * MQTT_USER=minion     _mqtt user_

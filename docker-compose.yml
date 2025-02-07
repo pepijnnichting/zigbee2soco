@@ -9,11 +9,11 @@ services:
         env_file:
           - .env
         environment:
-          PREFIX: ${PREFIX:-zigbee2mqtt/Woonkamer Sonos}
           MQTT_HOST: ${MQTT_HOST:-localhost}
           MQTT_PORT: ${MQTT_PORT:-1883}
           MQTT_USER: ${MQTT_USER:-}
           MQTT_PASS: ${MQTT_PASS:-}
+          MQTT_PREFIX: ${MQTT_PREFIX:-zigbee2mqtt/Woonkamer Sonos}
           VOLUME_MULTIPLIER: ${VOLUME_MULTIPLIER:-2}
           SONOS_ZONE: ${SONOS_ZONE:-Woonkamer Sonos}
         cap_add:
