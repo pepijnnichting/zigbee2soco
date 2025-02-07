@@ -111,11 +111,11 @@ class Z2S:
 ############## mqtt callbacks ########################
 
 # The callback for when the client receives a CONNACK response from the server.
-def on_connect(client, z2s, flags, rc):
-    print("MQTT Connected with result code "+str(rc))
-    if rc==4:
-        print ("MQTT connection refused - bad username or password")
-    elif rc==5:
+def on_connect(client, userdata, flags, reasonCode, properties=None):
+    print("MQTT Connected with result code "+str(reasonCode))
+    if reasonCode == 4:
+        print("MQTT connection refused - bad username or password")
+    elif reasonCode == 5:
         print("MQTT connection refused - not authorized")
         
     # Subscribing in on_connect() means that if we lose the connection and
@@ -125,7 +125,7 @@ def on_connect(client, z2s, flags, rc):
     client.subscribe(mqttprefix)
 
 # The callback for when a PUBLISH message is received from the server.
-def on_message(client, z2s, msg):
+def on_message(client, userdata, msg):
 
     decoded_message=str(msg.payload.decode("utf-8"))
     payload=json.loads(decoded_message)
@@ -161,16 +161,14 @@ def on_message(client, z2s, msg):
 ################################
 
 z2s = Z2S()
-    
-client = mqtt.Client(userdata=z2s)
+client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+client.user_data_set(z2s)
 if mqttuser:
     print ("Using mqtt user name "+mqttuser+" / password '"+mqttpass+"'")
     client.username_pw_set(mqttuser, mqttpass)
 client.on_connect = on_connect
 client.on_message = on_message
 
-
-    
 print ("Connecting to "+mqtthost+":"+str(mqttport))
 client.connect(mqtthost, int(mqttport), 60)
 
