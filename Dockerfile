@@ -1,7 +1,6 @@
-FROM ubuntu:22.04
-RUN apt-get update && apt-get -y install --no-install-recommends python3 python3-pip
-RUN pip3 install --upgrade pip setuptools wheel
+FROM python:3.13-slim
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel
 COPY requirements.txt requirements.txt
-RUN pip3 install -r requirements.txt 
+RUN pip install --no-cache-dir -r requirements.txt
 COPY zigbee2soco.py /
-ENTRYPOINT ["/zigbee2soco.py"]
+ENTRYPOINT ["python3", "/zigbee2soco.py"]

@@ -1,21 +1,21 @@
 services:
-    zigbee2soco:
-        build: .
-        restart: always
-        network_mode: host
-        image: zigbee2soco
-        stdin_open: true # docker run -i
-        tty: true        # docker run -t
-        env_file:
-          - .env
-        environment:
-          MQTT_HOST: ${MQTT_HOST:-localhost}
-          MQTT_PORT: ${MQTT_PORT:-1883}
-          MQTT_USER: ${MQTT_USER:-}
-          MQTT_PASS: ${MQTT_PASS:-}
-          MQTT_PREFIX: ${MQTT_PREFIX:-zigbee2mqtt/Woonkamer Sonos}
-          VOLUME_MULTIPLIER: ${VOLUME_MULTIPLIER:-2}
-          SONOS_ZONE: ${SONOS_ZONE:-Woonkamer Sonos}
-        cap_add:
-        - NET_ADMIN
-        - SYS_ADMIN
+  zigbee2soco:
+    build: .
+    restart: always
+    network_mode: host
+    image: zigbee2soco
+    stdin_open: true # docker run -i
+    tty: true # docker run -t
+    env_file:
+      - .env
+    environment:
+      MQTT_HOST: ${MQTT_HOST:-localhost}
+      MQTT_PORT: ${MQTT_PORT:-1883}
+      MQTT_USER: ${MQTT_USER:-}
+      MQTT_PASS: ${MQTT_PASS:-}
+      MQTT_PREFIX: ${MQTT_PREFIX:-zigbee2mqtt/Woonkamer Sonos}
+      VOLUME_MULTIPLIER: ${VOLUME_MULTIPLIER:-2}
+      SONOS_ZONE: ${SONOS_ZONE:-Woonkamer Sonos}
+    cap_add:
+      - NET_ADMIN
+      - SYS_ADMIN
