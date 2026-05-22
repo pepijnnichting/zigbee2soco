@@ -90,9 +90,9 @@ def on_message(client, userdata, msg):
     action = payload.get('action')
 
     if action == "brightness_move_up":
-        z2s.lastUporDown = "up"
-    elif action == "brightness_move_down":
         z2s.lastUporDown = "down"
+    elif action == "brightness_move_down":
+        z2s.lastUporDown = "up"
     elif action == "brightness_stop":
         z2s.lastUporDown = None
 
@@ -111,10 +111,10 @@ def on_message(client, userdata, msg):
     elif action in ("skip_forward", "track_next"):
         # gen1 - skip_forward, gen2 - track_next
         z2s.skipforward(socozone)
-    elif action in ("rotate_right", "volume_up", "brightness_move_up") or (action is None and z2s.lastUporDown == "up"):
+    elif action in ("rotate_right", "volume_up", "brightness_move_down") or (action is None and z2s.lastUporDown == "up"):
         # gen1 - rotate, gen2 - volume...
         z2s.volup(socozone)
-    elif action in ("rotate_left", "volume_down", "brightness_move_down") or (action is None and z2s.lastUporDown == "down"):
+    elif action in ("rotate_left", "volume_down", "brightness_move_up") or (action is None and z2s.lastUporDown == "down"):
         # gen1 - rotate, gen2 - volume...
         z2s.voldown(socozone)
         
