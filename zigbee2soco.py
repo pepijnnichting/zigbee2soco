@@ -2,13 +2,21 @@
 
 import os
 import json
+import logging
 import paho.mqtt.client as mqtt
 import soco
 from dotenv import load_dotenv
 
 load_dotenv()
 
-socozone  = os.getenv("SONOS_ZONE", "Woonkamer Sonos")
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
+log = logging.getLogger(__name__)
+
+socozone   = os.getenv("SONOS_ZONE", "Woonkamer Sonos")
 multiplier = int(os.getenv("VOLUME_MULTIPLIER", "1"))
 mqttprefix = os.getenv("MQTT_PREFIX", "zigbee2mqtt/sonosremote")
 mqtthost   = os.getenv("MQTT_HOST", "localhost")
@@ -22,71 +30,75 @@ mqttpass   = os.getenv("MQTT_PASS")
 
 class Z2S:
 
-    def __init__(self):
-        self.discover()
+    def __init__(self, multiplier):
+        self.multiplier = multiplier
         self.lastUporDown = None
-        
+        self.discover()
+
     def discover(self):
         discovered = soco.discover()
         if discovered is not None:
             self.zones = {x.player_name: x for x in discovered}
-            print(f"ZONES: {self.zones}")
+            log.info(f"Zones found: {list(self.zones.keys())}")
         else:
             self.zones = {}
-            print("No zones discovered")
-
+            log.warning("No zones discovered")
         return self.zones
 
     def pause(self, speaker):
         state = self.zones[speaker].get_current_transport_info()['current_transport_state']
-
         if state == "PLAYING":
-            print(f"Pause {speaker}")
+            log.info(f"Pause {speaker}")
             self.zones[speaker].pause()
         else:
-            print(f"Play {speaker}")
+            log.info(f"Play {speaker}")
             try:
                 self.zones[speaker].play()
             except Exception as e:
-                print(f"Unable to play tune on {speaker}. Try playing something from the Sonos controller first. Error: {e}")
+                log.error(f"Unable to play on {speaker}. Try playing something from the Sonos controller first. Error: {e}")
 
     def skipforward(self, speaker):
-        print(f"skip forward {speaker}")
+        log.info(f"Skip forward {speaker}")
         self.zones[speaker].next()
 
     def volup(self, speaker):
         state = self.zones[speaker].get_current_transport_info()['current_transport_state']
         if state == "PLAYING":
-            print(f"volume up {speaker}")
-            self.zones[speaker].volume = min(self.zones[speaker].volume + multiplier, 100)
+            nv = min(self.zones[speaker].volume + self.multiplier, 100)
+            log.info(f"Volume up {speaker} → {nv}")
+            self.zones[speaker].volume = nv
 
     def voldown(self, speaker):
         state = self.zones[speaker].get_current_transport_info()['current_transport_state']
         if state == "PLAYING":
-            print(f"volume down {speaker}")
-            self.zones[speaker].volume = max(self.zones[speaker].volume - multiplier, 0)
+            nv = max(self.zones[speaker].volume - self.multiplier, 0)
+            log.info(f"Volume down {speaker} → {nv}")
+            self.zones[speaker].volume = nv
 
         
 
 ############## mqtt callbacks ########################
 
-# The callback for when the client receives a CONNACK response from the server.
 def on_connect(client, userdata, flags, reasonCode, properties=None):
-    print(f"MQTT Connected with result code {reasonCode}")
-    if reasonCode == 4:
-        print("MQTT connection refused - bad username or password")
-    elif reasonCode == 5:
-        print("MQTT connection refused - not authorized")
+    if reasonCode.is_failure:
+        log.error(f"MQTT connection failed: {reasonCode}")
+    else:
+        # Subscribing in on_connect() means that if we lose the connection and
+        # reconnect then subscriptions will be renewed.
+        log.info(f"MQTT connected ({reasonCode}), subscribing to {mqttprefix}")
+        client.subscribe(mqttprefix)
 
-    # Subscribing in on_connect() means that if we lose the connection and
-    # reconnect then subscriptions will be renewed.
+def on_disconnect(client, userdata, flags, reasonCode, properties=None):
+    log.warning(f"MQTT disconnected: {reasonCode}")
 
-    print(f"trying to subscribe to {mqttprefix}")
-    client.subscribe(mqttprefix)
-
-# The callback for when a PUBLISH message is received from the server.
 def on_message(client, userdata, msg):
-    payload = json.loads(msg.payload.decode("utf-8"))
+    try:
+        payload = json.loads(msg.payload.decode("utf-8"))
+    except (json.JSONDecodeError, UnicodeDecodeError) as e:
+        log.error(f"Invalid message on {msg.topic}: {e}")
+        return
+
+    z2s = userdata
     action = payload.get('action')
 
     if action == "brightness_move_up":
@@ -96,13 +108,11 @@ def on_message(client, userdata, msg):
     elif action == "brightness_stop":
         z2s.lastUporDown = None
 
-    # move this to the object
     if socozone not in z2s.zones:
-        print(f"No such speaker {socozone}, running discover")
+        log.warning(f"Speaker '{socozone}' not found, running discover")
         z2s.discover()
-
         if socozone not in z2s.zones:
-            print("Not found after rescan")
+            log.error(f"Speaker '{socozone}' not found after rescan")
             return
 
     if action in ("play_pause", "toggle"):
@@ -120,19 +130,18 @@ def on_message(client, userdata, msg):
         
 ################################
 
-z2s = Z2S()
+z2s = Z2S(multiplier)
 client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
 client.user_data_set(z2s)
 if mqttuser:
-    print(f"Using mqtt user name {mqttuser} / password '{mqttpass}'")
+    log.info(f"Using MQTT user '{mqttuser}'")
     client.username_pw_set(mqttuser, mqttpass)
 client.on_connect = on_connect
+client.on_disconnect = on_disconnect
 client.on_message = on_message
 
-print(f"Connecting to {mqtthost}:{mqttport}")
+log.info(f"Connecting to {mqtthost}:{mqttport}")
 client.connect(mqtthost, mqttport, 60)
 
-print("zigbee2soco starting processing of events")
-
-# mqtt loop
+log.info("zigbee2soco starting")
 client.loop_forever()
