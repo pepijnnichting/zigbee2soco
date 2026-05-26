@@ -1,7 +1,7 @@
 This connects sonos to zigbee2mqtt to control SONOS speakers with the IKEA SYMFONISK controllers - the rotary (gen1) and the new "flat" (gen2).
 My rotary controllers are both dead - which means that the support for those need to be considered legacy, I will not be able to add features or fix bugs in a reliable way.
 
-Tested with Sonos S1 - unknown if it works with S2.
+Tested with Sonos S2 - unknown if it works with S1.
 
 The controller need to be named as the speaker, e.g. mqtt topic _prefix_/_speaker_, then everything works out of the box.
 This is case sensitive and _prefix_ need to uniquely identify what messages are from controllers.
