@@ -3,6 +3,7 @@
 import os
 import json
 import logging
+import threading
 import paho.mqtt.client as mqtt
 import soco
 from dotenv import load_dotenv
@@ -33,6 +34,8 @@ class Z2S:
     def __init__(self, multiplier):
         self.multiplier = multiplier
         self.lastUporDown = None
+        self._click_timer = None
+        self._was_playing = False
         self.discover()
 
     def discover(self):
@@ -44,6 +47,28 @@ class Z2S:
             self.zones = {}
             log.warning("No zones discovered")
         return self.zones
+
+    def on_toggle(self, speaker):
+        if self._click_timer is not None:
+            # Second click within window — undo pause and skip to next track
+            self._click_timer.cancel()
+            self._click_timer = None
+            self.skipforward(speaker)
+            if self._was_playing:
+                try:
+                    self.zones[speaker].play()
+                except Exception:
+                    pass
+        else:
+            # First click — act immediately, open a window for a second click
+            state = self.zones[speaker].get_current_transport_info()['current_transport_state']
+            self._was_playing = (state == "PLAYING")
+            self.pause(speaker)
+            self._click_timer = threading.Timer(0.4, self._close_click_window)
+            self._click_timer.start()
+
+    def _close_click_window(self):
+        self._click_timer = None
 
     def pause(self, speaker):
         state = self.zones[speaker].get_current_transport_info()['current_transport_state']
@@ -116,8 +141,8 @@ def on_message(client, userdata, msg):
             return
 
     if action in ("play_pause", "toggle"):
-        # both gen1 and gen2 have play_pause
-        z2s.pause(socozone)
+        # single click = play/pause, double click = next track
+        z2s.on_toggle(socozone)
     elif action in ("skip_forward", "track_next"):
         # gen1 - skip_forward, gen2 - track_next
         z2s.skipforward(socozone)
