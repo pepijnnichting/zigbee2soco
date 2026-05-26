@@ -33,7 +33,6 @@ class Z2S:
 
     def __init__(self, multiplier):
         self.multiplier = multiplier
-        self.lastUporDown = None
         self._click_timer = None
         self._was_playing = False
         self.discover()
@@ -126,13 +125,6 @@ def on_message(client, userdata, msg):
     z2s = userdata
     action = payload.get('action')
 
-    if action == "brightness_move_up":
-        z2s.lastUporDown = "down"
-    elif action == "brightness_move_down":
-        z2s.lastUporDown = "up"
-    elif action == "brightness_stop":
-        z2s.lastUporDown = None
-
     if socozone not in z2s.zones:
         log.warning(f"Speaker '{socozone}' not found, running discover")
         z2s.discover()
@@ -146,10 +138,10 @@ def on_message(client, userdata, msg):
     elif action in ("skip_forward", "track_next"):
         # gen1 - skip_forward, gen2 - track_next
         z2s.skipforward(socozone)
-    elif action in ("rotate_right", "volume_up", "brightness_move_down") or (action is None and z2s.lastUporDown == "up"):
+    elif action in ("rotate_right", "volume_up", "brightness_move_down"):
         # gen1 - rotate, gen2 - volume...
         z2s.volup(socozone)
-    elif action in ("rotate_left", "volume_down", "brightness_move_up") or (action is None and z2s.lastUporDown == "down"):
+    elif action in ("rotate_left", "volume_down", "brightness_move_up"):
         # gen1 - rotate, gen2 - volume...
         z2s.voldown(socozone)
         
